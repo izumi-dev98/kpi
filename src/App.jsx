@@ -5,90 +5,139 @@ function App() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
 
-  // Fetch all KPIs
   const fetchKpis = () => {
     fetch("http://127.0.0.1:8000/api/kpi")
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok " + response.statusText);
-        }
+        if (!response.ok) throw new Error("Network error");
         return response.json();
       })
-      .then((data) => {
-        setKpis(data.data); // assuming your Laravel response has 'data'
-      })
-      .catch((error) => {
-        console.error("Error fetching KPIs:", error);
-      });
+      .then((data) => setKpis(data.data || []))
+      .catch((error) => console.error(error));
   };
 
   useEffect(() => {
     fetchKpis();
   }, []);
 
-  // Add new KPI
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newKpi = { name, age: Number(age) };
-
     fetch("http://127.0.0.1:8000/api/kpi", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newKpi),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, age: Number(age) }),
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok " + response.statusText);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("KPI added:", data);
+      .then(() => {
         setName("");
         setAge("");
-        fetchKpis(); // refresh the KPI list
+        fetchKpis();
       })
-      .catch((error) => {
-        console.error("Error adding KPI:", error);
-      });
+      .catch((err) => console.error(err));
+  };
+
+  // 🎨 Updated Color Styles
+  const styles = {
+    container: {
+      maxWidth: "480px",
+      margin: "0 auto",
+      padding: "16px",
+      background: "#f1f5f9", // light gray background
+      minHeight: "100vh",
+      fontFamily: "system-ui, sans-serif",
+    },
+    title: {
+      textAlign: "center",
+      marginBottom: "16px",
+      color: "#0f172a", // dark slate
+    },
+    card: {
+      background: "#ffffff",
+      padding: "16px",
+      borderRadius: "14px",
+      marginBottom: "16px",
+      boxShadow: "0 6px 16px rgba(15,23,42,0.08)",
+    },
+    input: {
+      width: "100%",
+      padding: "12px",
+      marginBottom: "12px",
+      borderRadius: "10px",
+      border: "1px solid #cbd5f5",
+      fontSize: "16px",
+      outline: "none",
+    },
+    button: {
+      width: "100%",
+      padding: "12px",
+      background: "linear-gradient(135deg, #2563eb, #1e40af)",
+      color: "#ffffff",
+      border: "none",
+      borderRadius: "10px",
+      fontSize: "16px",
+      fontWeight: "600",
+      cursor: "pointer",
+    },
+    listItem: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "12px 0",
+      borderBottom: "1px solid #e2e8f0",
+      color: "#334155",
+    },
+    badge: {
+      background: "#dbeafe",
+      color: "#1e40af",
+      padding: "4px 10px",
+      borderRadius: "999px",
+      fontSize: "14px",
+      fontWeight: "600",
+    },
   };
 
   return (
-    <div>
-      <h2>KPI List</h2>
-      <ul>
-        {kpis.map((kpi) => (
-          <li key={kpi.id}>
-            {kpi.name}: {kpi.age}
-          </li>
-        ))}
-      </ul>
+    <div style={styles.container}>
+      <h1 style={styles.title}>KPI Dashboard</h1>
 
-      <h2>Add New KPI</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
+      <div style={styles.card}>
+        <h2 style={{ color: "#1e293b" }}>Add KPI</h2>
+
+        <form onSubmit={handleSubmit}>
           <input
+            style={styles.input}
             type="text"
+            placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
-        </div>
-        <div>
-          <label>Value:</label>
+
           <input
+            style={styles.input}
             type="number"
+            placeholder="Age"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             required
           />
-        </div>
-        <button type="submit">Add KPI</button>
-      </form>
+
+          <button style={styles.button} type="submit">
+            Add KPI
+          </button>
+        </form>
+      </div>
+
+      <div style={styles.card}>
+        <h2 style={{ color: "#1e293b" }}>KPI List</h2>
+
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {kpis.map((kpi) => (
+            <li key={kpi.id} style={styles.listItem}>
+              <span>{kpi.name}</span>
+              <span style={styles.badge}>{kpi.age}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
